@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useChannel } from '../context/ChannelContext';
 
 interface HeaderProps {
@@ -8,7 +8,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
-  const { channelData, currentChannelUrl, analyze, loading } = useChannel();
+  const { currentChannelUrl, analyze, loading } = useChannel();
 
   const handleRefresh = async () => {
     if (currentChannelUrl) {
@@ -29,10 +29,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
 
       <div className="flex items-center gap-4">
         {/* API Status Badge */}
-        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
-          <ShieldCheck className="w-3.5 h-3.5" />
-          <span>API Connected</span>
-        </div>
+
 
         {currentChannelUrl && (
           <button
