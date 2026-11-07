@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { useChannel } from '../context/ChannelContext';
+import { sendChatMessage } from '../services/api';
 import {
   Send,
   Sparkles,
@@ -8,7 +9,6 @@ import {
   User,
   Lightbulb,
   Loader2,
-  RefreshCw,
   BrainCircuit
 } from 'lucide-react';
 
@@ -17,15 +17,18 @@ interface Message {
   sender: 'user' | 'ai';
   text: string;
   timestamp: string;
+  memoriesUsed?: string[];
 }
 
 export const AIStrategistPage: React.FC = () => {
   const { channelData } = useChannel();
+  const channelId = channelData?.channel.channel_id || 'default_channel';
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       sender: 'ai',
-      text: `Hello! I am your CreatorIQ AI Strategist. I have analyzed ${channelData?.channel.name || 'your channel'} (${channelData?.analytics.recent_video_count || 0} recent videos loaded, avg views: ${channelData?.analytics.average_views_per_video ? Math.round(channelData.analytics.average_views_per_video).toLocaleString() : 'N/A'}). How can I help you optimize your content strategy today?`,
+      text: `Hello! I am your CreatorIQ AI Strategist powered by Vectorize Hindsight memory. I have analyzed ${channelData?.channel.name || 'your channel'} (${channelData?.analytics.recent_video_count || 0} recent videos loaded). How can I help you optimize your content strategy today?`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -64,40 +67,34 @@ export const AIStrategistPage: React.FC = () => {
     if (!textToSend) setInput('');
     setLoading(true);
 
-    // Simulate intelligent AI strategist response leveraging channel analytics
-    setTimeout(() => {
-      let aiResponseText = "Based on your channel analytics and Hindsight memory profile, ";
-      const lower = text.toLowerCase();
-
-      if (lower.includes('next') || lower.includes('post') || lower.includes('ideas')) {
-        aiResponseText += `your highest-performing video is "${channelData?.analytics.highest_viewed_video?.title || 'your top video'}" with ${channelData?.analytics.highest_viewed_video?.view_count?.toLocaleString() || 0} views. I recommend creating a follow-up case study or a deeper technical breakdown addressing common questions from that video's comment section.`;
-      } else if (lower.includes('underperforming') || lower.includes('why')) {
-        aiResponseText += `your recent videos show a variance in views. The ones with lower view counts often suffer from unclear title hooks or lack of immediate problem framing in the opening 15 seconds. Ensure your thumbnail and title create a curiosity loop without over-promising.`;
-      } else if (lower.includes('hook') || lower.includes('retention')) {
-        aiResponseText += `to improve your video hooks: 1) Skip lengthy channel intros, 2) State the exact viewer benefit or problem in the first 10 seconds, and 3) Show a high-stakes preview of the climax or result early on.`;
-      } else if (lower.includes('audience') || lower.includes('prefer')) {
-        aiResponseText += `your audience responds best to actionable, high-utility content. Your average engagement rate is ${channelData?.analytics.average_engagement_rate_percent ? channelData.analytics.average_engagement_rate_percent.toFixed(2) + '%' : 'healthy'}, indicating strong loyalty when you solve concrete problems.`;
-      } else {
-        aiResponseText += `focusing on iterative title optimization and robust hooks will yield the highest return on viewer retention. Your channel average is ${channelData?.analytics.average_views_per_video ? Math.round(channelData.analytics.average_views_per_video).toLocaleString() : 'stable'} views per video. Let's build upon your top outlier formats!`;
-      }
-
+    try {
+      const res = await sendChatMessage(channelId, text.trim(), channelData);
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'ai',
-        text: aiResponseText,
+        text: res.reply,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        memoriesUsed: res.memories_used,
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (err: any) {
+      const fallbackMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        sender: 'ai',
+        text: "I encountered a minor connection issue reaching the Hindsight memory server, but based on your channel metrics, focus on strong hooks and high-utility case studies!",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
-
-      setMessages(prev => [...prev, aiMessage]);
+      setMessages(prev => [...prev, fallbackMsg]);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-charcoal-950 overflow-hidden">
       <Header
         title="AI Content Strategist"
-        subtitle="Chat with your channel's personalized AI strategist backed by Hindsight memory"
+        subtitle="Chat with your channel's personalized AI strategist backed by Vectorize Hindsight memory"
       />
 
       <div className="flex-1 flex flex-col max-w-5xl w-full mx-auto p-6 md:p-8 overflow-hidden">
@@ -110,13 +107,13 @@ export const AIStrategistPage: React.FC = () => {
                 <Bot className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">CreatorIQ Strategist AI</h3>
+                <h3 className="text-sm font-bold text-white">CreatorIQ Hindsight Agent</h3>
                 <p className="text-xs text-gray-400">Contextualized for {channelData?.channel.name}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs">
               <BrainCircuit className="w-3.5 h-3.5 animate-pulse" />
-              <span>Memory Synchronized</span>
+              <span>Hindsight Memory Active</span>
             </div>
           </div>
 
@@ -141,6 +138,18 @@ export const AIStrategistPage: React.FC = () => {
                     : 'bg-charcoal-850 text-gray-200 border border-charcoal-700/80 rounded-tl-none'
                 }`}>
                   <p>{msg.text}</p>
+
+                  {msg.memoriesUsed && msg.memoriesUsed.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-charcoal-700 text-xs text-violet-300">
+                      <span className="font-semibold block mb-1">🧠 Recalled Hindsight Memories:</span>
+                      <ul className="list-disc pl-4 space-y-0.5 text-gray-300">
+                        {msg.memoriesUsed.map((mem, i) => (
+                          <li key={i}>{mem}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                   <span className={`block text-[10px] mt-2 ${msg.sender === 'user' ? 'text-violet-200 text-right' : 'text-gray-400'}`}>
                     {msg.timestamp}
                   </span>
@@ -155,7 +164,7 @@ export const AIStrategistPage: React.FC = () => {
                 </div>
                 <div className="bg-charcoal-850 text-gray-400 border border-charcoal-700/80 rounded-2xl rounded-tl-none p-4 text-sm flex items-center gap-3">
                   <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
-                  <span>Synthesizing channel analytics & memory...</span>
+                  <span>Recalling Hindsight vector memory & generating strategy...</span>
                 </div>
               </div>
             )}

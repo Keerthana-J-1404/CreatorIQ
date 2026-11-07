@@ -25,6 +25,20 @@ export const getYoutubeChannel = async (channelUrl: string): Promise<ChannelResp
   return response.data;
 };
 
+export const sendChatMessage = async (channelId: string, message: string, channelContext?: any) => {
+  const response = await apiClient.post('/api/chat', {
+    channel_id: channelId,
+    message,
+    channel_context: channelContext,
+  });
+  return response.data;
+};
+
+export const getChannelMemories = async (channelId: string) => {
+  const response = await apiClient.get(`/api/memory/${channelId}`);
+  return response.data;
+};
+
 export const checkHealth = async (): Promise<{ status: string; service: string }> => {
   const response = await apiClient.get('/health');
   return response.data;
