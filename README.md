@@ -18,7 +18,22 @@ Creators often have to move between channel metrics and planning tools to unders
 
 ## Screenshots
 
-There are no genuine application screenshots in the repository yet. See the [screenshot capture checklist](docs/screenshots/README.md) for suggested captures and safe capture guidance. Screenshots should be added only after capturing the running application.
+The screenshots below show the main CreatorIQ screens. See the [screenshot capture checklist](docs/screenshots/README.md) for capture guidance.
+
+| Landing page | Channel dashboard |
+|---|---|
+| ![CreatorIQ landing page with channel URL input and demo options](docs/screenshots/landing-page.png) | ![Channel dashboard showing channel analytics and recent video views](docs/screenshots/dashboard.png) |
+| **Landing page:** Channel URL entry, demo options, and product overview. | **Channel dashboard:** Recent channel metrics and video views. |
+
+| AI Content Strategist | Content Intelligence |
+|---|---|
+| ![AI Content Strategist showing a channel strategy report](docs/screenshots/ai-strategy-report.png) | ![Content Intelligence showing video performance comparisons](docs/screenshots/content-intelligence.png) |
+| **AI Content Strategist:** Structured strategy report based on channel analytics. | **Content Intelligence:** Recent video performance comparisons and guidance. |
+
+| Memory Center | Settings |
+|---|---|
+| ![Memory Center showing prototype memory clusters](docs/screenshots/memory-center.png) | ![Settings showing the connected channel and configuration panels](docs/screenshots/settings.png) |
+| **Memory Center:** Prototype memory clusters for the selected channel. | **Settings:** Connected channel and configuration panels. |
 
 ## Technology stack
 
