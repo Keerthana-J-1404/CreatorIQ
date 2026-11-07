@@ -53,12 +53,14 @@ export interface ChannelAnalytics {
 }
 
 export interface AnalyticsChannelResponse {
+  data_source: "youtube_api" | "demo";
   channel: ChannelInfo;
   videos: VideoAnalytics[];
   analytics: ChannelAnalytics;
 }
 
 export interface ChannelResponse {
+  data_source: "youtube_api" | "demo";
   channel: ChannelInfo;
   videos: VideoInfo[];
 }

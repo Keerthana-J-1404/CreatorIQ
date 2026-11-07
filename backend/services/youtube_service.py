@@ -47,7 +47,7 @@ def _read_json(response: Any) -> dict[str, Any]:
 
 
 def _request_json(resource: str, params: dict[str, str]) -> dict[str, Any]:
-    query = urlencode({**params, "key": YOUTUBE_API_KEY})
+    query = urlencode({**params, "key": YOUTUBE_API_KEY.strip()})
     request = Request(f"{API_BASE_URL}/{resource}?{query}")
     try:
         with urlopen(request, timeout=API_TIMEOUT_SECONDS) as response:
@@ -222,7 +222,16 @@ def _get_mock_channel_data(channel_url: str) -> ChannelResponse:
         ),
     ]
 
-    return ChannelResponse(channel=channel_info, videos=mock_videos)
+    return ChannelResponse(
+        data_source="demo",
+        channel=channel_info,
+        videos=mock_videos,
+    )
+
+
+def _has_youtube_api_key() -> bool:
+    api_key = (YOUTUBE_API_KEY or "").strip()
+    return bool(api_key and api_key.casefold() != "your_youtube_api_key_here")
 
 
 async def get_channel_data(channel_url: str) -> ChannelResponse:
@@ -233,21 +242,17 @@ async def get_channel_data(channel_url: str) -> ChannelResponse:
         raise YouTubeServiceError("Provide a valid YouTube channel URL.", 422) from exc
 
     # If YouTube API key is missing or not configured, return robust mock data for seamless demo/hackathon testing
-    if not YOUTUBE_API_KEY or YOUTUBE_API_KEY == "your_youtube_api_key_here":
+    if not _has_youtube_api_key():
         return _get_mock_channel_data(validated_url)
 
-    try:
-        query_name, query_value = _resolve_channel(validated_url)
-        channel_payload = await _api_get(
-            "channels",
-            {
-                "part": "snippet,contentDetails,statistics",
-                query_name: query_value,
-            },
-        )
-    except YouTubeServiceError:
-        # Graceful fallback to mock data if API fails or quota exceeded during hackathon
-        return _get_mock_channel_data(validated_url)
+    query_name, query_value = _resolve_channel(validated_url)
+    channel_payload = await _api_get(
+        "channels",
+        {
+            "part": "snippet,contentDetails,statistics",
+            query_name: query_value,
+        },
+    )
 
     channel_items = channel_payload.get("items")
     if not isinstance(channel_items, list) or not channel_items:
@@ -331,4 +336,8 @@ async def get_channel_data(channel_url: str) -> ChannelResponse:
                     )
                 )
 
-    return ChannelResponse(channel=channel_info, videos=videos)
+    return ChannelResponse(
+        data_source="youtube_api",
+        channel=channel_info,
+        videos=videos,
+    )

@@ -19,6 +19,7 @@ from backend.services.insights_service import (
 
 def make_channel(videos: list[VideoInfo]) -> ChannelResponse:
     return ChannelResponse(
+        data_source="youtube_api",
         channel=ChannelInfo(
             channel_id="channel-1",
             name="Creator",
@@ -145,6 +146,7 @@ class ChannelInsightsServiceTests(unittest.TestCase):
         result = asyncio.run(get_channel_insights("https://youtube.com/@creator"))
 
         self.assertEqual(result.channel.channel_id, "channel-1")
+        self.assertEqual(result.data_source, "youtube_api")
         self.assertEqual(result.analytics.average_views_per_video, 200)
         self.assertEqual(result.videos[0].engagement_rate_percent, 7.5)
         self.assertIn("1 retrieved recent video", result.sample_scope)
@@ -165,6 +167,20 @@ class ChannelInsightsServiceTests(unittest.TestCase):
         prompt = json.loads(generated_call.call_args.kwargs["contents"])
         self.assertEqual(prompt["recent_video_sample"][0]["views"], 200)
         self.assertEqual(prompt["sample_analytics"]["average_views_per_video"], 200)
+        client.close.assert_called_once()
+
+    def test_insights_response_preserves_demo_data_source(self) -> None:
+        client, _ = self.make_client_mock(json.dumps(make_strategy()))
+
+        with patch(
+            "backend.services.insights_service.get_channel_data",
+            new=AsyncMock(
+                return_value=self.channel.model_copy(update={"data_source": "demo"})
+            ),
+        ):
+            result = asyncio.run(get_channel_insights("https://youtube.com/@creator"))
+
+        self.assertEqual(result.data_source, "demo")
         client.close.assert_called_once()
 
     def test_does_not_call_gemini_without_configured_api_key(self) -> None:

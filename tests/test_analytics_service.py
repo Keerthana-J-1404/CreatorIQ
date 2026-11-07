@@ -28,6 +28,7 @@ def make_video(
 
 def make_channel(videos: list[VideoInfo]) -> ChannelResponse:
     return ChannelResponse(
+        data_source="youtube_api",
         channel=ChannelInfo(
             channel_id="channel-1",
             name="Creator",
@@ -120,6 +121,13 @@ class CalculateChannelAnalyticsTests(unittest.TestCase):
         self.assertIsNone(result.videos[1].views_vs_average_percent)
         self.assertEqual(result.videos[1].performance, "unavailable")
 
+    def test_analytics_response_preserves_demo_data_source(self) -> None:
+        channel_data = make_channel([]).model_copy(update={"data_source": "demo"})
+
+        result = calculate_channel_analytics(channel_data)
+
+        self.assertEqual(result.data_source, "demo")
+
     def test_original_youtube_endpoint_contract_remains_unchanged(self) -> None:
         channel_data = make_channel([make_video("sample", 10, 1, 0)])
         with patch(
@@ -132,7 +140,10 @@ class CalculateChannelAnalyticsTests(unittest.TestCase):
 
         get_channel_data.assert_awaited_once_with("https://youtube.com/@creator")
         self.assertEqual(result, channel_data)
-        self.assertEqual(set(result.model_dump()), {"channel", "videos"})
+        self.assertEqual(
+            set(result.model_dump()), {"data_source", "channel", "videos"}
+        )
+        self.assertEqual(result.data_source, "youtube_api")
         openapi = app.openapi()
         original_endpoint = openapi["paths"]["/api/youtube/channel"]["post"]
         response_schema = original_endpoint["responses"]["200"]["content"][

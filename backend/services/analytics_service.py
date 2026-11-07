@@ -92,6 +92,7 @@ def calculate_channel_analytics(channel_data: ChannelResponse) -> AnalyticsChann
     )
 
     return AnalyticsChannelResponse(
+        data_source=channel_data.data_source,
         channel=channel_data.channel,
         videos=video_analytics,
         analytics=ChannelAnalytics(

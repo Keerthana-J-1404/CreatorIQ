@@ -3,7 +3,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from backend.schemas.analytics import ChannelAnalytics, VideoAnalytics
-from backend.schemas.youtube import ChannelInfo
+from backend.schemas.youtube import ChannelInfo, DataSource
 
 
 class SupportedObservation(BaseModel):
@@ -77,6 +77,7 @@ class StrategyDraft(BaseModel):
 
 
 class ChannelInsightsResponse(StrategyDraft):
+    data_source: DataSource
     channel: ChannelInfo
     videos: list[VideoAnalytics]
     analytics: ChannelAnalytics

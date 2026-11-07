@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from backend.schemas.youtube import ChannelInfo, VideoInfo
+from backend.schemas.youtube import ChannelInfo, DataSource, VideoInfo
 
 
 class VideoRanking(BaseModel):
@@ -50,6 +50,7 @@ class ChannelAnalytics(BaseModel):
 
 
 class AnalyticsChannelResponse(BaseModel):
+    data_source: DataSource
     channel: ChannelInfo
     videos: list[VideoAnalytics]
     analytics: ChannelAnalytics

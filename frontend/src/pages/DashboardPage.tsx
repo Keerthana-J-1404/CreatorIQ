@@ -55,6 +55,19 @@ export const DashboardPage: React.FC = () => {
       />
 
       <div className="p-8 space-y-8 flex-1 max-w-7xl w-full mx-auto">
+        {channelData.data_source === 'demo' && (
+          <div
+            role="status"
+            className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200"
+          >
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <span>
+              <strong className="font-semibold">Demo data:</strong> These illustrative
+              metrics are not retrieved from YouTube.
+            </span>
+          </div>
+        )}
+
         {/* Channel Hero Profile Card */}
         <div className="bg-charcoal-900 border border-charcoal-700/80 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden shadow-xl">
           <div className="absolute top-0 right-0 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl pointer-events-none"></div>

@@ -1,6 +1,9 @@
+from typing import Literal
 from urllib.parse import urlsplit
 
 from pydantic import BaseModel, field_validator
+
+DataSource = Literal["youtube_api", "demo"]
 
 
 class ChannelRequest(BaseModel):
@@ -62,5 +65,6 @@ class VideoInfo(BaseModel):
 
 
 class ChannelResponse(BaseModel):
+    data_source: DataSource
     channel: ChannelInfo
     videos: list[VideoInfo]

@@ -248,6 +248,7 @@ async def get_channel_insights(channel_url: str) -> ChannelInsightsResponse:
     )
     return ChannelInsightsResponse(
         **draft.model_dump(),
+        data_source=channel_data.data_source,
         channel=channel_data.channel,
         videos=analytics_data.videos,
         analytics=analytics_data.analytics,

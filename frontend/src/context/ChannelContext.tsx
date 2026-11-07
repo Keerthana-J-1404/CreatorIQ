@@ -16,12 +16,19 @@ const ChannelContext = createContext<ChannelContextType | undefined>(undefined);
 const STORAGE_KEY = 'creatoriq_channel_data';
 const URL_STORAGE_KEY = 'creatoriq_channel_url';
 
+const isAnalyticsChannelResponse = (value: unknown): value is AnalyticsChannelResponse =>
+  typeof value === 'object'
+  && value !== null
+  && 'data_source' in value
+  && (value.data_source === 'youtube_api' || value.data_source === 'demo');
+
 export const ChannelProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [channelData, setChannelData] = useState<AnalyticsChannelResponse | null>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed: unknown = JSON.parse(saved);
+        return isAnalyticsChannelResponse(parsed) ? parsed : null;
       } catch {
         return null;
       }
