@@ -232,8 +232,8 @@ async def get_channel_data(channel_url: str) -> ChannelResponse:
     except ValidationError as exc:
         raise YouTubeServiceError("Provide a valid YouTube channel URL.", 422) from exc
 
-    # If YouTube API key is missing or not configured, return robust mock data for seamless demo/hackathon testing
-    if not YOUTUBE_API_KEY or YOUTUBE_API_KEY == "your_youtube_api_key_here":
+    # If YouTube API key is missing, empty, or set to placeholder, return robust mock data instantly
+    if not YOUTUBE_API_KEY or "your_" in YOUTUBE_API_KEY.lower() or not YOUTUBE_API_KEY.strip():
         return _get_mock_channel_data(validated_url)
 
     try:
