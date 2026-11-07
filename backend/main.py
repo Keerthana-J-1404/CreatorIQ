@@ -3,6 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.routes.analytics import router as analytics_router
 from backend.routes.youtube import router as youtube_router
 
 app = FastAPI(title="CreatorIQ API")
@@ -18,6 +19,7 @@ app.add_middleware(
 )
 
 app.include_router(youtube_router)
+app.include_router(analytics_router)
 
 
 @app.get("/health")
