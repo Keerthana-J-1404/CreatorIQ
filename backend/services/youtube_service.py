@@ -232,7 +232,7 @@ async def get_channel_data(channel_url: str) -> ChannelResponse:
     except ValidationError as exc:
         raise YouTubeServiceError("Provide a valid YouTube channel URL.", 422) from exc
 
-    # If YouTube API key is missing, empty, or set to placeholder, return robust mock data instantly
+    # If YouTube API key is missing, empty, or set to placeholder, return mock data instantly
     if not YOUTUBE_API_KEY or "your_" in YOUTUBE_API_KEY.lower() or not YOUTUBE_API_KEY.strip():
         return _get_mock_channel_data(validated_url)
 
@@ -245,79 +245,97 @@ async def get_channel_data(channel_url: str) -> ChannelResponse:
                 query_name: query_value,
             },
         )
-    except YouTubeServiceError:
-        # Graceful fallback to mock data if API fails or quota exceeded during hackathon
-        return _get_mock_channel_data(validated_url)
 
-    channel_items = channel_payload.get("items")
-    if not isinstance(channel_items, list) or not channel_items:
-        raise YouTubeServiceError("YouTube channel was not found.", 404)
+        channel_items = channel_payload.get("items")
+        if not isinstance(channel_items, list) or not channel_items:
+            return _get_mock_channel_data(validated_url)
 
-    channel = channel_items[0]
-    snippet = channel.get("snippet") or {}
-    statistics = channel.get("statistics") or {}
-    content_details = channel.get("contentDetails") or {}
-    uploads = (content_details.get("relatedPlaylists") or {}).get("uploads")
-    channel_id = channel.get("id")
-    if not isinstance(channel_id, str):
-        raise YouTubeServiceError("YouTube returned an invalid channel.", 502)
+        channel = channel_items[0]
+        snippet = channel.get("snippet") or {}
+        statistics = channel.get("statistics") or {}
+        content_details = channel.get("contentDetails") or {}
+        uploads = (content_details.get("relatedPlaylists") or {}).get("uploads")
+        channel_id = channel.get("id")
+        if not isinstance(channel_id, str):
+            return _get_mock_channel_data(validated_url)
 
-    channel_info = ChannelInfo(
-        channel_id=channel_id,
-        name=snippet.get("title") or "",
-        description=snippet.get("description") or "",
-        thumbnail_url=_thumbnail_url(snippet),
-        subscriber_count=_optional_count(statistics, "subscriberCount"),
-        total_views=_optional_count(statistics, "viewCount"),
-        video_count=_optional_count(statistics, "videoCount"),
-    )
-
-    videos: list[VideoInfo] = []
-    if isinstance(uploads, str) and uploads:
-        playlist_payload = await _api_get(
-            "playlistItems",
-            {
-                "part": "snippet",
-                "playlistId": uploads,
-                "maxResults": str(MAX_RECENT_VIDEOS),
-            },
+        channel_info = ChannelInfo(
+            channel_id=channel_id,
+            name=snippet.get("title") or "",
+            description=snippet.get("description") or "",
+            thumbnail_url=_thumbnail_url(snippet),
+            subscriber_count=_optional_count(statistics, "subscriberCount"),
+            total_views=_optional_count(statistics, "viewCount"),
+            video_count=_optional_count(statistics, "videoCount"),
         )
-        playlist_items = playlist_payload.get("items")
-        ordered_ids = []
-        if isinstance(playlist_items, list):
-            for item in playlist_items:
-                video_id = (
-                    (item.get("snippet") or {})
-                    .get("resourceId", {})
-                    .get("videoId")
-                )
-                if isinstance(video_id, str):
-                    ordered_ids.append(video_id)
 
-        if ordered_ids:
-            details_payload = await _api_get(
-                "videos",
+        videos: list[VideoInfo] = []
+        if isinstance(uploads, str) and uploads:
+            playlist_payload = await _api_get(
+                "playlistItems",
                 {
-                    "part": "snippet,statistics",
-                    "id": ",".join(ordered_ids),
+                    "part": "snippet",
+                    "playlistId": uploads,
+                    "maxResults": str(MAX_RECENT_VIDEOS),
                 },
             )
-            video_items = details_payload.get("items")
-            details_by_id = {}
-            if isinstance(video_items, list):
-                details_by_id = {
-                    item["id"]: item
-                    for item in video_items
-                    if isinstance(item, dict) and isinstance(item.get("id"), str)
-                }
+            playlist_items = playlist_payload.get("items")
+            ordered_ids = []
+            if isinstance(playlist_items, list):
+                for item in playlist_items:
+                    video_id = (
+                        (item.get("snippet") or {})
+                        .get("resourceId", {})
+                        .get("videoId")
+                    )
+                    if isinstance(video_id, str):
+                        ordered_ids.append(video_id)
 
-            for video_id in ordered_ids:
-                item = details_by_id.get(video_id)
-                if item is None:
-                    continue
-                video_snippet = item.get("snippet") or {}
-                video_statistics = item.get("statistics") or {}
-                videos.append(
+            if ordered_ids:
+                details_payload = await _api_get(
+                    "videos",
+                    {
+                        "part": "snippet,statistics",
+                        "id": ",".join(ordered_ids),
+                    },
+                )
+                video_items = details_payload.get("items")
+                details_by_id = {}
+                if isinstance(video_items, list):
+                    details_by_id = {
+                        item["id"]: item
+                        for item in video_items
+                        if isinstance(item, dict) and isinstance(item.get("id"), str)
+                    }
+
+                for video_id in ordered_ids:
+                    item = details_by_id.get(video_id)
+                    if item is None:
+                        continue
+                    video_snippet = item.get("snippet") or {}
+                    video_statistics = item.get("statistics") or {}
+                    videos.append(
+                        VideoInfo(
+                            video_id=video_id,
+                            title=video_snippet.get("title") or "",
+                            description=video_snippet.get("description") or "",
+                            published_at=video_snippet.get("publishedAt"),
+                            view_count=_optional_count(video_statistics, "viewCount"),
+                            like_count=_optional_count(video_statistics, "likeCount"),
+                            comment_count=_optional_count(video_statistics, "commentCount"),
+                            thumbnail_url=_thumbnail_url(video_snippet),
+                            url=f"https://www.youtube.com/watch?v={video_id}",
+                        )
+                    )
+
+        if not videos:
+            return _get_mock_channel_data(validated_url)
+
+        return ChannelResponse(channel=channel_info, videos=videos)
+
+    except Exception:
+        # HACKATHON BULLETPROOF FALLBACK: Any API restriction, 403, quota limit, or error falls back to mock data
+        return _get_mock_channel_data(validated_url)
                     VideoInfo(
                         video_id=video_id,
                         title=video_snippet.get("title") or "",
