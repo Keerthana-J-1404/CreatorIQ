@@ -4,8 +4,7 @@ import urllib.request
 import urllib.error
 from typing import Any
 
-HINDSIGHT_API_KEY = os.getenv("HINDSIGHT_API_KEY")
-HINDSIGHT_BASE_URL = os.getenv("HINDSIGHT_BASE_URL", "https://hindsight.vectorize.io")
+from backend.config import HINDSIGHT_API_KEY, HINDSIGHT_BASE_URL
 
 # In-memory persistent fallback store for hackathon demo reliability
 _LOCAL_MEMORY_STORE: dict[str, list[dict[str, Any]]] = {}
