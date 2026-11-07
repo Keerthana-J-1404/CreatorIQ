@@ -8,7 +8,7 @@ export const Layout: React.FC = () => {
   const location = useLocation();
 
   // If trying to access protected pages without channel data, redirect to landing
-  if (!channelData && location.pathname !== '/') {
+  if (!channelData && location.pathname !== '/' && location.pathname !== '/strategist') {
     return <Navigate to="/" replace />;
   }
 

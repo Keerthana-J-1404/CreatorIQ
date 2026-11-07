@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, BrainCircuit, ShieldCheck, RefreshCw } from 'lucide-react';
+import { ShieldCheck, RefreshCw } from 'lucide-react';
 import { useChannel } from '../context/ChannelContext';
 
 interface HeaderProps {
@@ -28,12 +28,6 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Hindsight Memory Badge */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-600/10 border border-violet-500/20 text-violet-400 text-xs font-medium">
-          <BrainCircuit className="w-3.5 h-3.5 animate-pulse" />
-          <span>Hindsight Active</span>
-        </div>
-
         {/* API Status Badge */}
         <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
           <ShieldCheck className="w-3.5 h-3.5" />

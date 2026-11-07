@@ -1,5 +1,9 @@
 import axios from 'axios';
-import { AnalyticsChannelResponse, ChannelResponse } from '../types/api';
+import {
+  AnalyticsChannelResponse,
+  ChannelInsightsResponse,
+  ChannelResponse,
+} from '../types/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -15,6 +19,17 @@ export const analyzeChannel = async (channelUrl: string): Promise<AnalyticsChann
   const response = await apiClient.post<AnalyticsChannelResponse>('/api/analytics/channel', {
     channel_url: channelUrl,
   });
+  return response.data;
+};
+
+export const generateChannelInsights = async (
+  channelUrl: string,
+): Promise<ChannelInsightsResponse> => {
+  const response = await apiClient.post<ChannelInsightsResponse>(
+    '/api/insights/channel',
+    { channel_url: channelUrl },
+    { timeout: 60000 },
+  );
   return response.data;
 };
 

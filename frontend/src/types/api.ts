@@ -1,3 +1,5 @@
+export type DataSource = "youtube_api" | "demo";
+
 export interface ChannelRequest {
   channel_url: string;
 }
@@ -37,13 +39,13 @@ export interface VideoRanking {
 }
 
 export interface ChannelAnalytics {
-  average_views_per_video?: number | null;
-  average_likes_per_video?: number | null;
-  average_comments_per_video?: number | null;
-  average_engagement_rate_percent?: number | null;
-  total_recent_video_views?: number | null;
-  highest_viewed_video?: VideoRanking | null;
-  lowest_viewed_video?: VideoRanking | null;
+  average_views_per_video: number | null;
+  average_likes_per_video: number | null;
+  average_comments_per_video: number | null;
+  average_engagement_rate_percent: number | null;
+  total_recent_video_views: number | null;
+  highest_viewed_video: VideoRanking | null;
+  lowest_viewed_video: VideoRanking | null;
   recent_video_count: number;
   videos_with_view_data: number;
   videos_with_like_data: number;
@@ -53,14 +55,64 @@ export interface ChannelAnalytics {
 }
 
 export interface AnalyticsChannelResponse {
-  data_source: "youtube_api" | "demo";
+  data_source: DataSource;
   channel: ChannelInfo;
   videos: VideoAnalytics[];
   analytics: ChannelAnalytics;
 }
 
 export interface ChannelResponse {
-  data_source: "youtube_api" | "demo";
+  data_source: DataSource;
   channel: ChannelInfo;
   videos: VideoInfo[];
+}
+
+export interface SupportedObservation {
+  observation: string;
+  supporting_video_titles: string[];
+}
+
+export interface ContentHypothesis {
+  hypothesis: string;
+  rationale: string;
+  supporting_video_titles: string[];
+}
+
+export interface ContentPattern {
+  category: "topic" | "format" | "theme";
+  description: string;
+  supporting_video_titles: string[];
+  performance_observation: string | null;
+}
+
+export interface ContentGaps {
+  observed_underrepresented: SupportedObservation[];
+  hypotheses_to_test: ContentHypothesis[];
+}
+
+export interface Recommendation {
+  recommendation: string;
+  rationale: string;
+  supporting_video_titles: string[];
+}
+
+export interface ContentIdea {
+  proposed_title: string;
+  explanation: string;
+  based_on_video_titles: string[];
+}
+
+export interface ChannelInsightsResponse {
+  assessment: string;
+  strongest_observed_patterns: SupportedObservation[];
+  weakest_observed_patterns: SupportedObservation[];
+  content_patterns: ContentPattern[];
+  content_gaps: ContentGaps;
+  recommendations: Recommendation[];
+  content_ideas: ContentIdea[];
+  data_source: DataSource;
+  channel: ChannelInfo;
+  videos: VideoAnalytics[];
+  analytics: ChannelAnalytics;
+  sample_scope: string;
 }
