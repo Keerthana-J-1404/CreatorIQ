@@ -3,6 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend import config
 from backend.routes.analytics import router as analytics_router
 from backend.routes.insights import router as insights_router
 from backend.routes.youtube import router as youtube_router
@@ -13,10 +14,7 @@ app = FastAPI(title="CreatorIQ API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000",
-    ],
+    allow_origins=config.CORS_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
