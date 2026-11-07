@@ -112,7 +112,6 @@ def _optional_count(statistics: dict[str, Any], key: str) -> int | None:
 
 
 def _get_mock_channel_data(channel_url: str) -> ChannelResponse:
-    # Extract handle or name from URL for personalized mock data
     cleaned = channel_url.strip()
     name = "CreatorIQ Sample Channel"
     if "@" in cleaned:
@@ -226,13 +225,11 @@ def _get_mock_channel_data(channel_url: str) -> ChannelResponse:
 
 
 async def get_channel_data(channel_url: str) -> ChannelResponse:
-    # Validate channel URL format first
     try:
         validated_url = ChannelRequest(channel_url=channel_url).channel_url
     except ValidationError as exc:
         raise YouTubeServiceError("Provide a valid YouTube channel URL.", 422) from exc
 
-    # If YouTube API key is missing, empty, or set to placeholder, return mock data instantly
     if not YOUTUBE_API_KEY or "your_" in YOUTUBE_API_KEY.lower() or not YOUTUBE_API_KEY.strip():
         return _get_mock_channel_data(validated_url)
 
@@ -334,19 +331,4 @@ async def get_channel_data(channel_url: str) -> ChannelResponse:
         return ChannelResponse(channel=channel_info, videos=videos)
 
     except Exception:
-        # HACKATHON BULLETPROOF FALLBACK: Any API restriction, 403, quota limit, or error falls back to mock data
         return _get_mock_channel_data(validated_url)
-                    VideoInfo(
-                        video_id=video_id,
-                        title=video_snippet.get("title") or "",
-                        description=video_snippet.get("description") or "",
-                        published_at=video_snippet.get("publishedAt"),
-                        view_count=_optional_count(video_statistics, "viewCount"),
-                        like_count=_optional_count(video_statistics, "likeCount"),
-                        comment_count=_optional_count(video_statistics, "commentCount"),
-                        thumbnail_url=_thumbnail_url(video_snippet),
-                        url=f"https://www.youtube.com/watch?v={video_id}",
-                    )
-                )
-
-    return ChannelResponse(channel=channel_info, videos=videos)
